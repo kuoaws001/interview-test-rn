@@ -1,6 +1,7 @@
 import React, { createContext, useReducer, useState, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setSession, isValidToken } from '../util/auth'
+import axios, { endpoints } from '../util/axios'
 
 const initialState = {
     user: null,
@@ -20,6 +21,14 @@ const reducer = (state, action) => {
             user: null,
         };
     }
+
+    if (action.type === 'INITIAL') {
+        return {
+            ...state,
+            user: action.payload.user,
+        };
+    }
+
     return state;
 };
 
@@ -37,20 +46,42 @@ export const AuthContextProvider = ({ children }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
 
     useEffect(() => {
-        async function fetchToken() {
-            const accessToken = await AsyncStorage.getItem('accessToken');
 
+        const initialize = async () => {
+
+            const accessToken = await AsyncStorage.getItem('accessToken');
             if (accessToken && isValidToken(accessToken)) {
-                setSession(accessToken);
-                setAuthToken(accessToken);
+
+                const response = await axios.post(endpoints.auth.refresh);
+                const { jwt, user } = response.data;
+
+                dispatch({
+                    type: 'INITIAL',
+                    payload: {
+                        user: {
+                            ...user,
+                        },
+                    },
+                });
+
+                setSession(jwt);
+                setAuthToken(jwt);
             } else {
+                dispatch({
+                    type: 'INITIAL',
+                    payload: {
+                        user: null,
+                    },
+                });
+
                 setSession(null);
                 setAuthToken(null);
             }
         }
 
-        fetchToken();
-    }, []);
+        initialize()
+
+    }, [])
 
     const login = (accessToken, user) => {
 
