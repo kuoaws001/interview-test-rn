@@ -6,8 +6,23 @@ import { Colors } from './src/constants/styles';
 import IconButton from './src/components/ui/IconButton';
 import { AuthContextProvider, AuthContext } from './src/store/AuthContext';
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import LoginScreen from './src/screens/LoginScreen';
 
 const Stack = createNativeStackNavigator();
+
+const AuthStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: Colors.primary500 },
+        headerTintColor: 'white',
+        contentStyle: { backgroundColor: Colors.primary100 }
+      }}
+    >
+      <Stack.Screen name='Login' component={LoginScreen} />
+    </Stack.Navigator>
+  )
+}
 
 const AuthenticatedStack = () => {
   const ctx = useContext(AuthContext);
@@ -43,8 +58,7 @@ const Navigation = () => {
 
   return (
     <NavigationContainer>
-      <AuthenticatedStack />
-      {/* {ctx.isAuthenticated ? <AuthenticatedStack /> : <AuthStack />} */}
+      {ctx.isAuthenticated ? <AuthenticatedStack /> : <AuthStack />}
     </NavigationContainer>
   )
 }
