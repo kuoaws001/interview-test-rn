@@ -7,6 +7,7 @@ import IconButton from './src/components/ui/IconButton';
 import { AuthContextProvider, AuthContext } from './src/store/AuthContext';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import PageOneScreen from './src/screens/PageOneScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +50,7 @@ const AuthenticatedStack = () => {
           )
         }}
       />
+      <Stack.Screen name="PageOne" component={PageOneScreen} />
     </Stack.Navigator>
   )
 }

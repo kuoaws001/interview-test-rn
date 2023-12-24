@@ -1,28 +1,25 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState, useContext } from 'react'
-import axios from 'axios'
+import React, { useContext } from 'react'
+import UserAvatar from 'react-native-user-avatar';
 import { AuthContext } from '../store/AuthContext'
+import Button from '../components/ui/Button';
 
-const WelcomeScreen = () => {
-    const [message, setMessage] = useState('');
+const WelcomeScreen = ({ navigation }) => {
+    const { user } = useContext(AuthContext);
 
-    const ctx = useContext(AuthContext);
-    const token = ctx.token;
-
-    // useEffect(() => {
-    //     axios
-    //         .get('https://react-native-course-37b62-default-rtdb.firebaseio.com/message.json?auth=' + token)
-    //         .then((response) => {
-    //             setMessage(response.data)
-    //         })
-    // }, [token]);
+    const handlePress = () => {
+        navigation.navigate('PageOne');
+    }
 
     return (
         <View style={styles.rootContainer}>
-            <Text style={styles.title}>Welcome!</Text>
-            <Text>You authenticated successfully!</Text>
+            <UserAvatar size={50} name={user?.displayName} />
+            <Text style={styles.title}>{user?.displayName}</Text>
+            <Text style={styles.title}>{user?.email}</Text>
 
-            <Text>{message}</Text>
+            <Button onPress={handlePress}>
+                Page One
+            </Button>
         </View>
     )
 }
@@ -32,7 +29,7 @@ export default WelcomeScreen
 const styles = StyleSheet.create({
     rootContainer: {
         flex: 1,
-        justifyContent: 'center',
+        justifyContent: 'top',
         alignItems: 'center',
         padding: 32,
     },
@@ -40,5 +37,12 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 8,
+    },
+
+    button: {
+        flex: 1,
+    },
+    buttonPressed: {
+        opacity: 0.5,
     },
 });

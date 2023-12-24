@@ -11,13 +11,13 @@ const LoginScreen = () => {
 
     const ctx = useContext(AuthContext);
 
-    const handleLogin = async ({ email, password }) => {
+    const handleLogin = async ({ identifier, password }) => {
 
         setIsAuthenticating(true);
 
         try {
-            const token = await login(email, password);
-            ctx.authenticate(token);
+            const { jwt, user } = await login(identifier, password);
+            ctx.login(jwt, user);
         } catch (error) {
             Alert.alert('Authentication failed!');
         }
@@ -32,7 +32,7 @@ const LoginScreen = () => {
     }
 
     return (
-        <AuthContent isLogin={true} onAuthenticate={handleLogin} />
+        <AuthContent onAuthenticate={handleLogin} />
     )
 }
 

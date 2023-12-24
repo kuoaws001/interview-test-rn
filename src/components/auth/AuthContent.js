@@ -1,67 +1,39 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { Colors } from '../../constants/styles';
-import FlatButton from '../ui/FlatButton';
 import AuthForm from './AuthForm';
-import { useNavigation } from '@react-navigation/native';
 
-// interface Props {
-//     isLogin: boolean;
-//     onAuthenticate: ({ email, password }: { email: string, password: string }) => void;
-// }
-
-const AuthContent = ({ isLogin, onAuthenticate }) => {
-
-    const navigation = useNavigation();
+const AuthContent = ({ onAuthenticate }) => {
 
     const [credentialsInvalid, setCredentialsInvalid] = useState({
-        emailIsInvalid: false,
+        identifierIsInvalid: false,
         passwordIsInvalid: false,
-        emailsDontMatch: false,
-        passwordsDontMatch: false,
     });
 
-    const handleSwitchAuthMode = () => {
-        if (isLogin) {
-            navigation.replace('Signup');
-        } else {
-            navigation.replace('Login');
-        }
-    }
-
     const handleSubmit = (credentail) => {
-        let { email, confirmEmail, password, confirmPassword } = credentail;
+        let { identifier, password } = credentail;
 
-        email = email.trim();
+        identifier = identifier.trim();
         password = password.trim();
 
-        const emailIsValid = email.includes('@');
-        const passwordIsValid = password.length > 6;
-        const emailsAreEqual = email === confirmEmail;
-        const passwordsAreEqual = password === confirmPassword;
+        const identifierIsInvalid = identifier.length >= 4;
+        const passwordIsValid = password.length >= 4;
 
-        if (
-            !emailIsValid ||
-            !passwordIsValid ||
-            (!isLogin && (!emailsAreEqual || !passwordsAreEqual))
-        ) {
+        if (!identifierIsInvalid || !passwordIsValid) {
             Alert.alert('Invalid input', 'Please check your entered credentials.');
             setCredentialsInvalid({
-                emailIsInvalid: !emailIsValid,
-                emailsDontMatch: !emailIsValid || !emailsAreEqual,
+                identifierIsInvalid: !identifierIsInvalid,
                 passwordIsInvalid: !passwordIsValid,
-                passwordsDontMatch: !passwordIsValid || !passwordsAreEqual,
             });
             return;
         }
 
-        onAuthenticate({ email, password });
+        onAuthenticate({ identifier, password });
     }
 
     return (
         <View style={styles.authContent}>
             <AuthForm
-                isLogin={isLogin}
                 onSubmit={handleSubmit}
                 credentialsInvalid={credentialsInvalid}
             />

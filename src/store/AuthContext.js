@@ -1,50 +1,86 @@
-import React, { createContext, PropsWithChildren, useState, useEffect } from 'react'
+import React, { createContext, useReducer, useState, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setSession, isValidToken } from '../util/auth'
 
-// interface IAuthContext {
-//     token: string | null;
-//     isAuthenticated: boolean;
-//     authenticate: (token: string) => void;
-//     logout: () => void;
-// }
+const initialState = {
+    user: null,
+};
+
+const reducer = (state, action) => {
+    if (action.type === 'LOGIN') {
+        return {
+            ...state,
+            user: action.payload.user,
+        };
+    }
+
+    if (action.type === 'LOGOUT') {
+        return {
+            ...state,
+            user: null,
+        };
+    }
+    return state;
+};
+
 
 export const AuthContext = createContext({
-    token: null,
+    user: null,
     isAuthenticated: false,
-    authenticate: () => { },
+    login: () => { },
     logout: () => { }
 });
 
 export const AuthContextProvider = ({ children }) => {
+
     const [authToken, setAuthToken] = useState(null);
+    const [state, dispatch] = useReducer(reducer, initialState);
 
     useEffect(() => {
         async function fetchToken() {
-            const token = await AsyncStorage.getItem('token');
+            const accessToken = await AsyncStorage.getItem('accessToken');
 
-            if (token) {
-                setAuthToken(token);
+            if (accessToken && isValidToken(accessToken)) {
+                setSession(accessToken);
+                setAuthToken(accessToken);
+            } else {
+                setSession(null);
+                setAuthToken(null);
             }
         }
 
         fetchToken();
     }, []);
 
+    const login = (accessToken, user) => {
 
-    const authenticate = (token) => {
-        setAuthToken(token);
-        AsyncStorage.setItem('token', token);
+        setSession(accessToken);
+        setAuthToken(accessToken);
+
+        dispatch({
+            type: 'LOGIN',
+            payload: {
+                user: {
+                    ...user,
+                },
+            },
+        });
     }
 
     const logout = () => {
+
+        setSession(null);
         setAuthToken(null);
-        AsyncStorage.removeItem('token');
+
+        dispatch({
+            type: 'LOGOUT',
+        });
     }
 
     const value = {
-        token: authToken,
+        user: state.user,
         isAuthenticated: !!authToken,
-        authenticate,
+        login,
         logout
     }
 

@@ -1,23 +1,55 @@
-import axios from "axios";
+import "core-js/stable/atob";
+import { jwtDecode } from 'jwt-decode';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios, { endpoints } from '../util/axios'
 
-const API_KEY = 'AIzaSyDtygyMCGd4tX9kVszAKDFm3U4lgXpIty8';
+export const login = async (identifier, password) => {
 
-const authenticate = async (mode, email, password) => {
-    const url = `https://identitytoolkit.googleapis.com/v1/accounts:${mode}?key=${API_KEY}`
-
-    const response = await axios.post(url, {
-        email: email,
-        password: password,
-        returnSecureToken: true
+    const response = await axios.post(endpoints.auth.login, {
+        identifier,
+        password
     })
 
-    return response.data.idToken;
+    return response.data;
 }
 
-export const login = (email, password) => {
-    return authenticate('signInWithPassword', email, password);
-}
+export const isValidToken = (accessToken) => {
+    if (!accessToken) {
+        return false;
+    }
 
-export const createUser = (email, password) => {
-    return authenticate('signUp', email, password);
+    const decoded = jwtDecode(accessToken);
+
+    const currentTime = Date.now() / 1000;
+
+    return decoded.exp > currentTime;
+};
+
+export const tokenExpired = (exp) => {
+    let expiredTimer;
+
+    const currentTime = Date.now();
+    const timeLeft = exp * 1000 - currentTime;
+
+    clearTimeout(expiredTimer);
+
+    expiredTimer = setTimeout(() => {
+        AsyncStorage.removeItem('accessToken');
+    }, timeLeft);
+};
+
+export const setSession = (accessToken) => {
+    if (accessToken) {
+        AsyncStorage.setItem('accessToken', accessToken);
+
+        axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+
+        const { exp } = jwtDecode(accessToken)
+
+        tokenExpired(exp);
+    } else {
+        AsyncStorage.removeItem('accessToken');
+        
+        delete axios.defaults.headers.common.Authorization;
+    }
 }
