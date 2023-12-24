@@ -1,32 +1,46 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import axios, { endpoints } from '../util/axios'
+import { setSession } from '../util/auth'
+import Button from '../components/ui/Button'
 
 const PageOneScreen = () => {
 
     const [sum, setSum] = useState(0);
 
-    useEffect(() => {
+    const fetchData = async () => {
+        axios.get(endpoints.financial.figures)
+            .then(res => {
+                const { data } = res.data;
 
-        const fetchData = async () => {
-            const response = await axios.get(endpoints.financial.figures)
-            const { data } = response.data;
+                // totalAmount
+                const result = data.reduce((pre, current) => {
+                    const temp = (pre + current.attributes.totalAmount).toFixed(2);
+                    return Number(temp);
+                }, 0)
 
-            // totalAmount
-            const result = data.reduce((pre, current) => {
-                const temp = (pre + current.attributes.totalAmount).toFixed(2);
-                return Number(temp);
-            }, 0)
+                setSum(result)
+            })
+            .catch(error => {
+                if (error.response && error.response.status === 401) {
+                    axios.post(endpoints.auth.refresh)
+                        .then(res => {
+                            setSession(res.data.jwt);
+                            fetchData();
+                        })
+                }
+            })
+    }
 
-            setSum(result)
-        }
-
+    const handlePress = () => {
         fetchData();
-    }, [])
+    }
 
     return (
         <View style={styles.rootContainer}>
-            <Text>{` 調用 https://interview.m-inno.com/api/figures`}</Text>
+            <Button onPress={handlePress}>
+                {` call api/figures`}
+            </Button>
             <Text>{`totalAmount: ${sum}`}</Text>
         </View>
     );
